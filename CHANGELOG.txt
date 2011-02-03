@@ -1,0 +1,13 @@
+Mediaburst Nagios Plugins ChangeLog
+===================================
+
+check_smpp.pl
+-------------
+1.0 - 27/01/2011 - Initial release
+1.1 - 03/02/2011 - Fixed sample config & example 
+
+
+notify_sms.pl
+------------- 
+1.0 - 10/05/2010 - Initial release
+1.1 - 03/02/2011 - Fixed sample config to include username and password
