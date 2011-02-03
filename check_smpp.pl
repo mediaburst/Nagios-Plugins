@@ -8,8 +8,8 @@
 # ============================== SUMMARY =====================================
 #
 # Program   : check_smpp.pl
-# Version   : 1.0
-# Date      : Aug 9 2009
+# Version   : 1.1
+# Date      : Feb 3 2011
 # Author    : Martin Steel - martin@mediaburst.co.uk
 # Copyright : Mediaburst Ltd 2011 All rights reserved.
 # Summary   : This plugin connects to an SMPP server and sends an SMS message
@@ -76,7 +76,7 @@
 # other distributions may vary.
 #
 # Manually test it with a command like the following:
-# ./check_pop3_account.pl -H pop.example.org -u username -p password
+# ./check_smpp.pl -H smpp.example.org -u username -p password -P 2775
 
 # NAGIOS SETUP
 #
@@ -88,7 +88,7 @@
 #        use generic-service
 #        host_name 		SMPP_SERVER
 #        service_description 	Check SMPP Sending
-#        check_command 		check_pop3_account!jellison!A$3cr3T!10!50!pop3
+#        check_command 		check_smpp!USERNAME!PASSWORD!PORT
 #        normal_check_interval 	3
 #        retry_check_interval 	1
 # }
@@ -108,7 +108,7 @@ my $to = "447123456789";
 my $from = "Nagios";
 my $message = "Nagios SMPP Test ".localtime();
 my $port = 2775; # Port on SMPP Server
-my $system_type = undef; # System Type sentin the Bind Transmitter
+my $system_type = undef; # System Type sent in the Bind Transmitter
 my $service_type = undef; # Service Type sent on the Submit_SM PDU
 my $data_coding = 0; # Data Coding used for message payload (0 = SMPP Server Default)
 
