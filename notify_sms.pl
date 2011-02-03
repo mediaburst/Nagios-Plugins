@@ -4,8 +4,8 @@
 # ============================== SUMMARY =====================================
 #
 # Program   : notify_sms.pl
-# Version   : 1.0
-# Date      : March 19 2010
+# Version   : 1.1
+# Date      : Feb 3 2011
 # Author    : Martin Steel / Mediaburst Ltd
 # Copyright : Mediaburst Ltd 2011 All rights reserved.
 # Summary   : This plugin sends SMS alerts through the Mediaburst SMS API
@@ -45,15 +45,16 @@
 # NAGIOS SETUP
 #
 # 1. Create the SMS notification commands.  (Commonly found in commands.cfg)
+#    Don't forget to add your username and password.
 #
 # define command{
 # 	command_name    notify-by-sms
-#	command_line    $USER1$/notify_sms.pl -t $CONTACTPAGER$ -f Nagios -m "Service: $SERVICEDESC$\\nHost: $HOSTNAME$\\nAddress: $HOSTADDRESS$\\nState: $SERVICESTATE$\\nInfo: $SERVICEOUTPUT$\\nDate: $LONGDATETIME$"
+#	command_line    $USER1$/notify_sms.pl -u USERNAME -p PASSWORD -t $CONTACTPAGER$ -f Nagios -m "Service: $SERVICEDESC$\\nHost: $HOSTNAME$\\nAddress: $HOSTADDRESS$\\nState: $SERVICESTATE$\\nInfo: $SERVICEOUTPUT$\\nDate: $LONGDATETIME$"
 # }
 #
 # define command{
 #	command_name    host-notify-by-sms
-#	command_line    $USER1$/notify_sms.pl -t $CONTACTPAGER$ -f Nagios -m "Host $HOSTNAME$ is $HOSTSTATE$\\nInfo: $HOSTOUTPUT$\\nTime: $LONGDATETIME$"
+#	command_line    $USER1$/notify_sms.pl -u USERNAME -p PASSWORD -t $CONTACTPAGER$ -f Nagios -m "Host $HOSTNAME$ is $HOSTSTATE$\\nInfo: $HOSTOUTPUT$\\nTime: $LONGDATETIME$"
 # }
 #
 # 2. In your nagios contacts (Commonly found on contacts.cfg) add 
@@ -73,7 +74,7 @@ use Getopt::Long;
 use LWP;
 use URI::Escape;
 
-my $version='1.0';
+my $version='1.1';
 my $verbose = undef; # Turn on verbose output
 my $username = undef;
 my $password = undef;
