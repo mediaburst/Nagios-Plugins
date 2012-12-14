@@ -4,16 +4,16 @@
 # ============================== SUMMARY =====================================
 #
 # Program   : notify_sms.pl
-# Version   : 1.1
+# Version   : 1.2
 # Date      : Feb 3 2011
 # Author    : Martin Steel / Mediaburst Ltd
-# Copyright : Mediaburst Ltd 2011 All rights reserved.
-# Summary   : This plugin sends SMS alerts through the Mediaburst SMS API
+# Copyright : Mediaburst Ltd 2012 All rights reserved.
+# Summary   : This plugin sends SMS alerts through the Clockwork SMS API
 # License   : ISC
 #
 # =========================== PROGRAM LICENSE =================================
 #
-# Copyright (c) 2011 Mediaburst Ltd <hello@mediaburst.co.uk>
+# Copyright (c) 2012 Mediaburst Ltd <hello@mediaburst.co.uk>
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -29,9 +29,9 @@
 #
 # =============================	MORE INFO ======================================
 # 
-# As released this plugin requires a Mediaburst SMS API account to send text
-# messages.  To setup a Mediaburst SMS API account visit:
-#   http://www.mediaburst.co.uk/api/
+# As released this plugin requires a Clockwork account to send text
+# messages.  To setup a Clockwork account visit:
+#   http://www.clockworksms.com/platforms/nagios/
 #
 # The latest version of this plugin can be found on GitHub at:
 #   http://github.com/mediaburst/Nagios-Plugins
@@ -39,22 +39,22 @@
 # ============================= SETUP NOTES ====================================
 # 
 # Copy this file to your Nagios plugin folder
-# On a Centos install this is /usr/lib/nagios/plugins or /usr/lib64/nagios/plugins
-# other distributions may vary.
+# On a Centos install this is /usr/lib/nagios/plugins (32 bit) 
+# or /usr/lib64/nagios/plugins (64 bit) other distributions may vary.
 #
 # NAGIOS SETUP
 #
 # 1. Create the SMS notification commands.  (Commonly found in commands.cfg)
-#    Don't forget to add your username and password.
+#    Don't forget to add your Clockwork API Key.
 #
 # define command{
 # 	command_name    notify-by-sms
-#	command_line    $USER1$/notify_sms.pl -u USERNAME -p PASSWORD -t $CONTACTPAGER$ -f Nagios -m "Service: $SERVICEDESC$\\nHost: $HOSTNAME$\\nAddress: $HOSTADDRESS$\\nState: $SERVICESTATE$\\nInfo: $SERVICEOUTPUT$\\nDate: $LONGDATETIME$"
+#	command_line    $USER1$/notify_sms.pl -k API_KEY -t $CONTACTPAGER$ -f Nagios -m "Service: $SERVICEDESC$\\nHost: $HOSTNAME$\\nAddress: $HOSTADDRESS$\\nState: $SERVICESTATE$\\nInfo: $SERVICEOUTPUT$\\nDate: $LONGDATETIME$"
 # }
 #
 # define command{
 #	command_name    host-notify-by-sms
-#	command_line    $USER1$/notify_sms.pl -u USERNAME -p PASSWORD -t $CONTACTPAGER$ -f Nagios -m "Host $HOSTNAME$ is $HOSTSTATE$\\nInfo: $HOSTOUTPUT$\\nTime: $LONGDATETIME$"
+#	command_line    $USER1$/notify_sms.pl -k API_KEY -t $CONTACTPAGER$ -f Nagios -m "Host $HOSTNAME$ is $HOSTSTATE$\\nInfo: $HOSTOUTPUT$\\nTime: $LONGDATETIME$"
 # }
 #
 # 2. In your nagios contacts (Commonly found on contacts.cfg) add 
@@ -63,7 +63,8 @@
 #    service_notification_commands	notify-by-sms
 #    host_notification_commands		host-notify-by-sms
 #
-# 3. Add a pager number to your contacts
+# 3. Add a pager number to your contacts, make sure it has the international 
+#    prefix, e.g. 44 for UK or 1 for USA, without a leading 00 or +.
 #
 #    pager	447700900000  
 #
@@ -74,10 +75,9 @@ use Getopt::Long;
 use LWP;
 use URI::Escape;
 
-my $version='1.1';
+my $version = '1.2';
 my $verbose = undef; # Turn on verbose output
-my $username = undef;
-my $password = undef;
+my $key = undef;
 my $to = undef;
 my $from = "Nagios";
 my $message = undef;
@@ -85,12 +85,12 @@ my $message = undef;
 sub print_version { print "$0: version $version\n"; exit(1); };
 sub verb { my $t=shift; print "VERBOSE: ",$t,"\n" if defined($verbose) ; }
 sub print_usage {
-        print "Usage: $0 [-v] -u <username> -p <password> -t <to> [-f <from>] -m <message>\n";
+        print "Usage: $0 [-v] -k <key> -t <to> [-f <from>] -m <message>\n";
 }
 
 sub help {
         print "\nNotify by SMS Plugin ", $version, "\n";
-        print " Mediaburst Ltd - http://www.mediaburst.co.uk/\n\n";
+        print " Clockwork - http://www.clockworksms.com/\n\n";
         print_usage();
         print <<EOD;
 -h, --help
@@ -99,10 +99,8 @@ sub help {
         print version
 -v, --verbose
         print extra debugging information
--u, --username=USERNAME
-	SMS API Username
--p, --password=PASSWORD
-	SMS API Password
+-k, --key=KEY
+	Clockwork API Key
 -t, --to=TO
         mobile number to send SMS to in international format
 -f, --from=FROM (Optional)
@@ -119,17 +117,14 @@ sub check_options {
                 'v'     => \$verbose,		'verbose'       => \$verbose,
                 'V'     => \&print_version,	'version'       => \&print_version,
 		'h'	=> \&help,		'help'		=> \&help,
-		'u=s'	=> \$username,		'username=s'	=> \$username,
-		'p=s'	=> \$password,		'password=s'	=> \$password,
+		'k=s'	=> \$key,		'key=s'	        => \$key,
                 't=s'   => \$to,        	'to=s'          => \$to,
                 'f=s'   => \$from,      	'from=s'        => \$from,
                 'm=s'   => \$message,   	'message=s'     => \$message
         );
 
-	if (!defined($username))
-		{ print "ERROR: No username defined!\n"; print_usage(); exit(1); }
-	if (!defined($password))
-		{ print "ERROR: No password defined!\n"; print_usage(); exit(1); }
+	if (!defined($key))
+		{ print "ERROR: No API Key defined!\n"; print_usage(); exit(1); }
         if (!defined($to))
                 { print "ERROR: No to defined!\n"; print_usage(); exit(1); }
         if (!defined($message))
@@ -138,41 +133,37 @@ sub check_options {
 	if($to!~/^\d{7,15}$/) {
                 { print "ERROR: Invalid to number!\n"; print_usage(); exit(1); }
 	}
-	verb "username = $username";
-	verb "password = $password";
+	verb "key = $key";
         verb "to = $to";
         verb "from = $from";
         verb "message = $message";
 }
 
 sub SendSMS {
-	my $username = shift;
-	my $password = shift;
+	my $key = shift;
 	my $to = shift;
 	my $from = shift;
 	my $message = shift;
 
 	# URL Encode parameters before making the HTTP POST
-	$username=uri_escape($username);
-	$password=uri_escape($password);
-	$to=uri_escape($to);
-	$from=uri_escape($from);
-	$message=uri_escape($message);
+	$key        = uri_escape($key);
+	$to         = uri_escape($to);
+	$from       = uri_escape($from);
+	$message    = uri_escape($message);
 
 	my $result;
-	my $server = 'http://sms.message-platform.com/http/send.aspx';
-	my $post = 'username='.$username;
-	$post.='&password='.$password;
-	$post.='&to='.$to;
-	$post.='&from='.$from;
-	$post.='&content='.$message;
+	my $server = 'http://api.clockworksms.com/http/send';
+	my $post = 'key=' . $key;
+	$post .= '&to='.$to;
+	$post .= '&from='.$from;
+	$post .= '&content='.$message;
 	
 	verb("Post Data: ".$post);
 	
-        my $ua=LWP::UserAgent->new();
+        my $ua = LWP::UserAgent->new();
 	$ua->timeout(30);
 	$ua->agent('Nagios-SMS-Plugin/'.$version);
-        my $req=HTTP::Request->new('POST',$server);
+        my $req = HTTP::Request->new('POST',$server);
 	$req->content_type('application/x-www-form-urlencoded');
 	$req->content($post);
 	my $res = $ua->request($req);
@@ -197,7 +188,7 @@ sub SendSMS {
 
 
 check_options();
-my $send_result = SendSMS($username, $password, $to, $from, $message);
+my $send_result = SendSMS($key, $to, $from, $message);
 
 exit($send_result);
 
