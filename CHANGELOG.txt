@@ -11,3 +11,4 @@ notify_sms.pl
 ------------- 
 1.0 - 10/05/2010 - Initial release
 1.1 - 03/02/2011 - Fixed sample config to include username and password
+1.2 - 14/12/2012 - Update to use Clockwork API Keys & update sample config to match
