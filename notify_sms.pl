@@ -5,7 +5,7 @@
 #
 # Program   : notify_sms.pl
 # Version   : 1.2
-# Date      : Feb 3 2011
+# Date      : Dec 14 2012
 # Author    : Martin Steel / Mediaburst Ltd
 # Copyright : Mediaburst Ltd 2012 All rights reserved.
 # Summary   : This plugin sends SMS alerts through the Clockwork SMS API
