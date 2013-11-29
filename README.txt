@@ -3,7 +3,7 @@ Mediaburst Nagios Plugins
 
 A few plugins for the Nagios monitoring system
 
-Licensed for use under the ISC license, a full copy can be found in
+Licensed for use under the MIT license, a full copy can be found in
 LICENSE.txt.
 
 The Plugins
