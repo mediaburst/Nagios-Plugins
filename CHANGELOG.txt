@@ -1,6 +1,11 @@
 Mediaburst Nagios Plugins ChangeLog
 ===================================
 
+General
+-------
+29/11/2013 - License changed from ISC to MIT as the MIT license is much more widely known while offering very similar rights.
+             
+
 check_smpp.pl
 -------------
 1.0 - 27/01/2011 - Initial release
