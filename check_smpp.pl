@@ -53,9 +53,9 @@
 #                              [--system-type] [--service-type] [--data-coding]
 # -h, --help
 #        print this help message
-# -v, --version
+# -V, --version
 #        print version
-# -V, --verbose
+# -v, --verbose
 #        print extra debugging information
 # -H, --host=HOST
 #        hostname or IP address of host to check
